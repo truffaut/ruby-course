@@ -47,7 +47,7 @@ describe 'Project' do
     # sleep(0.50)
     # proj.add_task("desc5", 1)
 
-    end
+    # end
     # Test this method
   end
 
