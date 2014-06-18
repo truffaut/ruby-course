@@ -33,11 +33,14 @@ module DBI
       return nil if !check
       @__db_instance.exec("DROP schema public cascade;")
       @__db_instance.exec("CREATE schema public;")
+      puts "Database Cleared"
     end
 
     def reint_database
+      puts "Reinitialization Started"puts
       clear_db(true)
       create_all_tables
+      "Reinitialization Started"
     end
 
     #
@@ -53,6 +56,7 @@ module DBI
         );
       SQL
       @__db_instance.exec(proj_table_schema)
+      puts "Projects Table Created"
     end
 
     def create_tasks_table
@@ -68,10 +72,12 @@ module DBI
         );
       SQL
       @__db_instance.exec(tasks_table_schema)
+      puts "Tasks Table Created"
     end
 
     def create_users_table
 
+      puts "TODO: Users Table Created"
     end
 
   end
