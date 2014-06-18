@@ -20,6 +20,59 @@ module DBI
 
     end
 
+    #
+    # Database Reint Functions
+    #
+    def create_all_tables
+      create_projects_table
+      create_tasks_table
+      create_users_table
+    end
+
+    def clear_db(check)
+      return nil if !check
+      @__db_instance.exec("DROP schema public cascade;")
+      @__db_instance.exec("CREATE schema public;")
+    end
+
+    def reint_database
+      clear_db(true)
+      create_all_tables
+    end
+
+    #
+    # Database Schema
+    #
+
+    def create_projects_table
+      proj_table_schema = <<-SQL
+        CREATE TABLE projects(
+        name text,
+        id SERIAL,
+        PRIMARY KEY(id)
+        );
+      SQL
+      @__db_instance.exec(proj_table_schema)
+    end
+
+    def create_tasks_table
+      tasks_table_schema = <<-SQL
+        CREATE TABLE tasks(
+        id SERIAL,
+        priority integer,
+        creationTime text,
+        description text,
+        completed boolean,
+        proj_id integer REFERENCES projects(id),
+        PRIMARY KEY(id)
+        );
+      SQL
+      @__db_instance.exec(tasks_table_schema)
+    end
+
+    def create_users_table
+
+    end
 
   end
 
@@ -27,44 +80,4 @@ module DBI
     @__db_instance ||= DB.new
   end
 
-  # DATABASE SCHEMA
-  def creat_projects_table
-    proj_table_schema = <<-SQL
-      CREATE TABLE projects(
-      name text,
-      id SERIAL,
-      PRIMARY KEY(id)
-      );
-    SQL
-    @__db_instance.exec(proj_table_schema)
-  end
-  
-  def self.create_tasks_table
-    tasks_table_schema = <<-SQL
-      CREATE TABLE tasks(
-      id SERIAL,
-      priority integer,
-      creationTime text,
-      description text,
-      completed boolean,
-      proj_id integer REFERENCES projects(id),
-      PRIMARY KEY(id)
-      );
-    SQL
-    self.db.exec(tasks_table_schema)
-  end
-
-  def self.create_users_table
-
-  end
-
-  def self.clear_db(check)
-    return nil if !check
-    self.db.exec("DROP schema public cascade;")
-  end
-
-  def self.reinitialize_db_scheme(bool)
-    return nil if !bool
-    self.clear_db(true)
-  end
 end
