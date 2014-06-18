@@ -175,9 +175,9 @@ module TM
   def self.invalid_args(type)
     case type
     when :number
-
+      puts "invalid number of arguments!"
     when :type
-      puts "invalid number of arguments! #{type}"
+      puts "invalid type of arguments!"
     end
 
   end
