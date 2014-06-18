@@ -4,8 +4,11 @@ module DBI
 
   class DB
 
+    @DATABASE_NAME = 'task-manager'
+    @HOST = 'localhost'
+
     def initialize
-      @__db_instance = PG.connect(host: 'localhost', dbname: 'task-manager')
+      @__db_instance = PG.connect(host: @HOST, dbname: @DATABASE_NAME)
     end
 
     def insert_project
