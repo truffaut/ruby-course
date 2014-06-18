@@ -124,7 +124,6 @@ module TM
   end
 
   def self.cmd_history(project)
-    # TODO:
     # Takes one argument
     # PID
     # show completed tasks for project id
