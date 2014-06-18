@@ -40,7 +40,7 @@ module DBI
       puts "Reinitialization Started"
       clear_db(true)
       create_all_tables
-      "Reinitialization Started"
+      puts "Reinitialization Complete"
     end
 
     #
