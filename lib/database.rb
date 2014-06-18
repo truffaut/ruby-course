@@ -37,7 +37,7 @@ module DBI
     end
 
     def reint_database
-      puts "Reinitialization Started"puts
+      puts "Reinitialization Started"
       clear_db(true)
       create_all_tables
       "Reinitialization Started"
