@@ -173,10 +173,10 @@ module TM
 #
   def self.invalid_args(type)
     case type
-    when :number
-      puts "invalid number of arguments!"
-    when :type
-      puts "invalid type of arguments!"
+      when :number
+        puts "invalid number of arguments!".red
+      when :type
+        puts "invalid type of arguments!".red
     end
 
   end
@@ -199,7 +199,7 @@ module TM
   -- add      PID PRIORITY DESC - Add a new task to project with id=PID
   -- mark     TID               - Mark task with id=TID as complete
   -- exit/q,quit                       - exits the program
-  "
+  ".yellow
 
   end
 
@@ -217,7 +217,8 @@ module TM
 end
 
 # Require all of our project files
-require_relative 'database.rb'
+require_relative 'orm.rb'
 require_relative 'task-manager/task.rb'
 require_relative 'task-manager/project.rb'
 require 'pry-byebug'
+require 'colorize'

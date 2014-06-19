@@ -1,4 +1,4 @@
-require_relative "../database.rb"
+require_relative "../orm.rb"
 class TM::Project
   attr_reader :name, :pid, :project_tasks
 
