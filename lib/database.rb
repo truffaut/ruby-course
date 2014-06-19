@@ -106,12 +106,13 @@ module TM
       @db.exec(command)
       puts "Users Table Created"
     end
+
     # JOIN TABLES
     def create_usersprojects_table
       command = <<-SQL
         CREATE TABLE users_projects(
         id SERIAL,
-        PRIMARY KEY(id)
+        PRIMARY KEY(id),
         proj_id integer REFERENCES projects(id),
         user_id integer REFERENCES users(id)
         );
@@ -124,9 +125,9 @@ module TM
       command = <<-SQL
         CREATE TABLE projects_tasks(
         id SERIAL,
-        PRIMARY KEY(id)
+        PRIMARY KEY(id),
         proj_id integer REFERENCES projects(id),
-        task_id integer REFERENCES task(id),
+        task_id integer REFERENCES tasks(id)
         );
       SQL
       @db.exec(command)
