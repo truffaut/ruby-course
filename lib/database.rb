@@ -1,7 +1,6 @@
 require 'pg'
 require 'pry-byebug'
 module TM
-  # TM::db.get_users(pid)
 
   class DB
 
@@ -133,7 +132,6 @@ module TM
       @db.exec(command)
       puts "Users Table Created"
     end
-
 
   end
 
