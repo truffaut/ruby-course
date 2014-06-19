@@ -47,8 +47,8 @@ module TM
       create_projects_table
       create_tasks_table
       create_users_table
-      # create_usersprojects_table
-      # create_projectstasks_table
+      create_usersprojects_table
+      create_projectstasks_table
     end
 
     def clear_db(check)
