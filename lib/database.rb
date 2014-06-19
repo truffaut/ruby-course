@@ -1,6 +1,7 @@
 require 'pg'
-module DBI
-  # DBI.db.get_users(pid)
+require 'pry-byebug'
+module TM
+  # TM::db.get_users(pid)
 
   class DB
 
@@ -8,23 +9,39 @@ module DBI
     @HOST = 'localhost'
 
     def initialize
-      @__db_instance = PG.connect(host: @HOST, dbname: @DATABASE_NAME)
+      @db = PG.connect(host: @HOST, dbname: @DATABASE_NAME)
     end
 
-    def insert_project
-
-    end
-
-    def insert_task
+    def store_project()
 
     end
 
-    def insert_user
+    def store_task()
 
+    end
+
+    def store_user()
+
+    end
+
+    def list_projects
+      command = <<-SQL
+        SELECT * FROM projects;
+      SQL
+      results = @db.exec(command).values
+      results.map {|proj| TM::Project.new(proj[0], proj[1])}
+    end
+
+    def add_project(name)
+      command = <<-SQL
+        INSERT INTO projects (name)
+        VALUES('#{name}');
+      SQL
+      @db.exec(command)
     end
 
     #
-    # Database Reint Functions
+    # Database Re-int Functions
     #
     def create_all_tables
       create_projects_table
@@ -34,8 +51,9 @@ module DBI
 
     def clear_db(check)
       return nil if !check
-      @__db_instance.exec("DROP schema public cascade;")
-      @__db_instance.exec("CREATE schema public;")
+      # TM::db.exec("DROP schema public cascade;")
+      @db.exec("DROP schema public cascade;")
+      @db.exec("CREATE schema public;")
       puts "Database Cleared"
     end
 
@@ -58,7 +76,7 @@ module DBI
         PRIMARY KEY(id)
         );
       SQL
-      @__db_instance.exec(proj_table_schema)
+      @db.exec(proj_table_schema)
       puts "Projects Table Created"
     end
 
@@ -74,13 +92,13 @@ module DBI
         PRIMARY KEY(id)
         );
       SQL
-      @__db_instance.exec(tasks_table_schema)
+      @db.exec(tasks_table_schema)
       puts "Tasks Table Created"
     end
 
     def create_users_table
-
-      puts "TODO: Users Table Created"
+      # TODO:
+      puts "Users Table Created"
     end
 
   end
