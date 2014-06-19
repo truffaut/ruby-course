@@ -2,30 +2,19 @@ require_relative "../database.rb"
 class TM::Project
   attr_reader :name, :pid, :project_tasks
 
-  @@project_index = 0
-  @@master_project_list = {}
-
-  def initialize(name)
+  def initialize(name, pid)
     @name = name
-    @pid = @@project_index
-      @@project_index += 1
-    @project_tasks = []
-    @@master_project_list[@pid] = self
+    @pid = pid
   end
 
   def self.get_project(pid)
-    @@master_project_list[pid]
+    # returns a single project entity by id
+    TM::db.get_project(pid)
   end
 
   def self.get_projects
-    @@master_project_list.values
-  end
-
-  def self.destroy_all_projects(bool)
-    if bool
-      @@project_index = 0
-      @@master_project_list = {}
-    end
+    # returns an array of project entities
+    TM::db.list_projects
   end
 
   def add_task(desc, priority)
