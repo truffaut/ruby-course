@@ -2,46 +2,19 @@ require_relative "../orm.rb"
 
 class TM::Task
 
-  attr_reader :pid, :desc, :priority, :creation_time, :complete, :task_id
+  attr_reader :pid, :desc, :priority, :creation_time, :complete, :tid
 
-  @@task_index = 0
-  @@master_task_list = {}
-
-  def initialize(pid, desc, priority)
-    @pid = pid
+  def initialize(tid, priority, desc, creation_time, pid, complete)
+    @tid = Integer(tid)
+    @pid = Integer(pid)
     @desc = desc
-    @priority = validate_priority(priority)
-    @creation_time = Time.now.utc
-    @complete = false
-    @task_id = @@task_index
-      @@task_index += 1
-    @@master_task_list[@task_id] = self
+    @priority = Integer(priority)
+    @creation_time = Time.new(creation_time)
+    complete == "f" ? @complete = false : @complete = true
   end
 
   def mark_complete
-    @complete = true
-  end
-
-  def self.get_task(tid)
-    return @@master_task_list[tid]
-  end
-
-  def self.destroy_all_tasks(bool)
-    if bool
-      @@task_index = 0
-      @@master_task_list = {}
-    end
-  end
-
-  private
-  def validate_priority(priority)
-    if priority > 10
-      return 10
-    elsif priority < 0
-      return 0
-    else
-      return priority
-    end
+    # TM::orm.task_mark(task_id)
   end
 
 end

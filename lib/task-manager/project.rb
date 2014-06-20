@@ -1,10 +1,10 @@
 require_relative "../orm.rb"
 class TM::Project
-  attr_reader :name, :pid, :project_tasks
+  attr_reader :name, :pid
 
   def initialize(name, pid)
     @name = name
-    @pid = pid
+    @pid = Integer(pid)
   end
 
   def self.get_project(pid)
