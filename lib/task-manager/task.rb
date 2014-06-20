@@ -9,7 +9,7 @@ class TM::Task
     @pid = Integer(pid)
     @desc = desc
     @priority = Integer(priority)
-    @creation_time = Time.new(creation_time)
+    @creation_time = Time.parse(creation_time)
     complete == "f" ? @complete = false : @complete = true
   end
 
