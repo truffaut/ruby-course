@@ -2,9 +2,11 @@
 require './lib/task-manager.rb'
 require 'rspec/mocks'
 
-RSpec.configure do |config|
-  # Configure each test to always use a new singleton instance
-  config.before(:each) do
-    TM.instance_variable_set(:@__db_instance, nil)
-  end
+def are_tasks_equal(t1, t2)
+  t1.priority == t2.priority &&
+    t1.pid == t2.pid &&
+    t1.creation_time == t2.creation_time &&
+    t1.complete == t2.complete &&
+    t1.desc == t2.desc &&
+    t1.tid == t2.tid
 end
