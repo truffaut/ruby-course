@@ -5,7 +5,7 @@ describe "ORM" do
   RSpec::Mocks::setup(self)
 
   before(:all) do
-     TM.orm.instance_variable_set(:@__orm_instance, PG.connect(host: 'localhost', dbname: 'task-manager-test'))
+     TM.orm.instance_variable_set(:@__orm_instance, PG.connect({host: 'localhost', dbname: 'task-manager-test'}))
   end
   before(:each) do
     # IO.any_instance.stub(:puts)
@@ -21,14 +21,25 @@ describe "ORM" do
     end
   end # END SINGLETON INIT
 
-  describe "employees" do
 
+  let(:employee) { TM.orm.employee_create("Bob") }
+  before(:each) do
+    @name = "Bob"
+  end
+
+  describe "employees" do
     describe "#employee_create(employee_name)" do
       it "creates an employee in the db and returns a EMPLOYEE entity" do
-        name = "Bob"
-        employee = TM.orm.employee_create(name)
         expect(employee).to be_a(TM::Employee)
-        expect(employee.name).to eql(name)
+        expect(employee.name).to eql(@name)
+      end
+    end
+
+    describe "#employee_get(eid)" do
+      it "returns a EMPLOYEE entity from the database" do
+        emp = TM.orm.employee_get(employee.eid)
+        expect(emp).to be_a(TM::Employee)
+        expect(emp.name).to eql(employee.name)
       end
     end
 
@@ -59,7 +70,7 @@ describe "ORM" do
     end
 
     describe "#projects_list" do
-      it "returns an ARRAY of PROJECTS entities from the database" do
+      it "returns an ARRAY of PROJECT entities from the database" do
         names = ["Cooking","Eating", "Panda",
                 "Fruit Sculpture", "World Domination"]
         names.each { |name| TM.orm.project_create(name)}
@@ -71,26 +82,65 @@ describe "ORM" do
       end
     end
 
-    describe "#projects_show(pid)" do
-      it "returns a array of task ENTITIES all with proj_id=pid and complete=false" do
-        proj1 = TM.orm.project_create("project 1")
-        proj2 = TM.orm.project_create("project 2")
-        proj1_tasks = 6.times.map {|idx| TM.orm.task_create(proj1.pid, rand(10), "task #{idx}")}
-        proj2_tasks = 12.times.map {|idx| TM.orm.task_create(proj2.pid, rand(10), "task #{idx}")}
-        expect(proj1_tasks.all?{|tsk| tsk.is_a? TM::Task}).to eql(true)
-        expect(proj1_tasks.count).to eql(6)
-        expect(proj1_tasks.all?{|tsk| tsk.pid==proj1.pid}).to eql(true)
-        expect(proj2_tasks.all?{|tsk| tsk.is_a? TM::Task}).to eql(true)
-        expect(proj2_tasks.all?{|tsk| tsk.pid==proj2.pid}).to eql(true)
-        expect(proj2_tasks.count).to eql(12)
+    before(:each) do
+      @proj1 = TM.orm.project_create("project 1")
+      @tasks1_should = 6.times.map {|idx| TM.orm.task_create(@proj1.pid, rand(10), "task #{idx}")}
+    end
+
+    describe "list project tasks" do
+
+      describe "#projects_show(pid)" do
+        it "returns a array of task ENTITIES all with proj_id=pid and complete=false" do
+          results = TM::orm.project_show(@proj1.pid)
+          expect(results.count).to eql(@tasks1_should.count)
+          results.each_with_index do |tsk, idx|
+            expect(are_tasks_equal(tsk, @tasks1_should[idx])).to eql(true)
+          end
+        end
+      end
+
+      describe "#project_history" do
+        it "returns an array of task ENTITIES all with proj_id=pid and complete=true" do
+          # REQUIRES mark_completed to work
+          3.times { |i| TM::orm.task_mark(i+1) }
+          results = TM::orm.project_history(@proj1.pid)
+          expect(results.count).to eql(3)
+          expect(results.all? {|tsk| tsk.complete == true}).to eql(true)
+          expect(results.all? {|tsk| tsk.pid == @proj1.pid}).to eql(true)
+        end
+      end
+
+    end # end project list sub tests
+
+    describe "#project_recruit(pid, eid)" do
+      it "returns the row that was just added" do
+        employee = TM::orm.employee_create("DJ")
+        proj2 = TM::orm.project_create("Boom Town")
+        results = TM::orm.project_recruit(proj2.pid,1)
+        expect(results["proj_id"].to_i).to eql(proj2.pid)
+        expect(results["employee_id"].to_i).to eql(employee.eid)
       end
     end
 
-    describe "#project_history" do
-      it "returns an array of task ENTITIES all with proj_id=pid and complete=true" do
-        # REQUIRES mark_completed to work
+    describe "#project_employees" do
+      it "returns an array of EMPLOYEE entities who are involved in a project" do
+        10.times { |i| TM::orm.employee_create("Employee Name #{i+1}")}
+        2.times { |i| TM::orm.project_create("Project Name #{i+1}")}
+
+        # proj 1 should have 3 employees
+        3.times { |i| TM::orm.project_recruit(1, i+1)}
+        # proj 2 should have 8 employees
+        8.times { |i| TM::orm.project_recruit(2, i+1)}
+        # pending "still being implemented"
+        results3 = TM::orm.project_employees(1)
+        results8 = TM::orm.project_employees(2)
+
+        expect(results3.count).to eql(3)
+        expect(results8.count).to eql(8)
+
       end
     end
+
 
   end # END PROJECTS
 
