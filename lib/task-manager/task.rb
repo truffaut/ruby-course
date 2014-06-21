@@ -13,6 +13,7 @@ class TM::Task
     @creation_time = Time.parse(params[3])
     @pid = Integer(params[4])
     params[5] == "f" ? @complete = false : @complete = true
+    @owned_buy = params[6]
   end
 
   # TODO: Implement the mark_completed method within the class
