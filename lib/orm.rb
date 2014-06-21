@@ -5,12 +5,10 @@ module TM
 
   class ORM
 
-    attr_reader       :db_adapter
-    @DATABASE_NAME  = 'task-manager'
-    @HOST           = 'localhost'
+    attr_reader :db_adapter
 
     def initialize
-      @db_adapter = PG.connect(host: @HOST, dbname: @DATABASE_NAME)
+      @db_adapter = PG.connect({host: 'localhost', dbname: 'task-manager'})
     end
 
 ###########################################################################
@@ -26,7 +24,7 @@ module TM
         SELECT * FROM employees;
       SQL
       results = @db_adapter.exec(command).values
-      results.map {|proj| TM::Employee.new(proj[0], proj[1].to_i)}
+      results.map {|employee| TM::Employee.new(employee)}
     end
 
     # REQUIRED, TESTED
@@ -40,32 +38,40 @@ module TM
         VALUES('#{name}');
       SQL
       @db_adapter.exec(command)
-      proj = @db_adapter.exec("SELECT * FROM employees ORDER BY id DESC LIMIT 1").values.flatten
-      Employee.new(proj[0], proj[1])
+      employee_info = @db_adapter.exec("SELECT * FROM employees ORDER BY id DESC LIMIT 1").values.flatten
+      Employee.new(employee_info)
     end
 
-    # REQUIRED
-    # COMMAND
-    # Show employee EID and all participating projects
-    def employee_show_projects(employee_id)
+              # REQUIRED
+              # COMMAND
+              # Show employee EID and all participating projects
+              def employee_show_projects(employee_id)
 
+              end
+
+              # REQUIRED
+              # COMMAND
+              # Show all remaining tasks assigned to employee EID,
+              # along with the project name next to each task
+              def employee_details(employee_id)
+
+              end
+
+              # REQUIRED
+              # COMMAND
+              # Show completed tasks for employee
+              def employee_history(employee_id)
+
+              end
+
+    def employee_get(eid)
+      command = <<-SQL
+        SELECT * FROM employees WHERE id='#{eid}'
+      SQL
+      results = @db_adapter.exec(command).values.flatten
+      # returns a single project entity specified by ID
+      TM::Employee.new(results)
     end
-
-    # REQUIRED
-    # COMMAND
-    # Show all remaining tasks assigned to employee EID,
-    # along with the project name next to each task
-    def employee_details(employee_id)
-
-    end
-
-    # REQUIRED
-    # COMMAND
-    # Show completed tasks for employee
-    def employee_history(employee_id)
-
-    end
-
 ###########################################################################
 ########################## Projects Model Methods #########################
 ###########################################################################
@@ -78,8 +84,9 @@ module TM
       command = <<-SQL
         SELECT * FROM projects;
       SQL
-      results = @db_adapter.exec(command).values
-      results.map {|proj| TM::Project.new(proj[0], proj[1])}
+      results = @db_adapter.exec(command).values.flatten
+      binding.pry
+      results.map {|proj| TM::Project.new(results)}
     end
 
     # REQUIRED, TESTED
@@ -94,59 +101,82 @@ module TM
       SQL
       @db_adapter.exec(command)
       proj = @db_adapter.exec("SELECT * FROM projects ORDER BY id DESC LIMIT 1").values.flatten
-      TM::Project.new(proj[0], proj[1])
+      TM::Project.new(proj)
     end
 
     # REQUIRED, TESTED
     # COMMAND
     # Show remaining tasks for project PID, completed = 'f'
-    # returns an array of TASK entities
+    ##### RETURNS - an array of TASK entities
     def project_show(proj_id)
       command = <<-SQL
         SELECT * FROM tasks
         WHERE proj_id='#{proj_id}'
-        AND comleted='f';
+        AND completed='f';
       SQL
-      incomplete_results = @db_adapter.exec(command).values
-      incomplete_results.map {|proj| TM::Project.new(proj[0], proj[1])}
+      results = @db_adapter.exec(command).values
+      results.map {|proj| TM::Task.new(proj)}
     end
 
-    # REQUIRED
+    # REQUIRED, TESTED
     # COMMAND
     # Show completed tasks for project PID
+    ##### RETURNS - an array of TASK entities
     def project_history(proj_id)
-      # TODO
       command = <<-SQL
         SELECT * FROM tasks
         WHERE proj_id='#{proj_id}'
-        AND comleted='t';
+        AND completed='t';
       SQL
-      incomplete_results = @db_adapter.exec(command).values
-      incomplete_results.map {|proj| TM::Project.new(proj[0], proj[1])}
+      results = @db_adapter.exec(command).values
+      results.map {|proj| TM::Task.new(proj)}
     end
 
     # REQUIRED
     # COMMAND
     # Show employees participating in this project
+    ##### RETURNS - an array of EMPLOYEE entities
     def project_employees(proj_id)
-
+      # command returns a list of employee_ids
+      # involved in the specific projcet
+      command = <<-SQL
+        SELECT employee_id
+        FROM employees e
+        JOIN employees_projects ep
+        ON e.id = ep.employee_id
+        WHERE proj_id='#{proj_id}';
+      SQL
+      results = @db_adapter.exec(command).values.flatten
+      results.map { |eid| employee_get(eid)}
     end
 
     # REQUIRED
     # COMMAND
     # Adds employee EID to participate in project PID
-    def project_recruit(proj_id)
-
+    ##### RETURNS - the added row in table in hash form
+    def project_recruit(pid, eid)
+      # this links a employee id with
+      # a project id in the join table
+      command = <<-SQL
+        INSERT INTO employees_projects (proj_id, employee_id)
+        VALUES('#{pid}','#{eid}');
+      SQL
+      @db_adapter.exec(command)
+      results = @db_adapter.exec("SELECT * FROM employees_projects ORDER BY id DESC LIMIT 1")
+      # returns a hash "proj_id" => "1", "employee_id" => "1", "id" => '1'
+      return results.[](0)
     end
 
+    # TODO
+    # Needs Testing
     # Returns a single project item
     def project_get(pid)
       command = <<-SQL
         SELECT * FROM projects WHERE id='#{pid}'
       SQL
-      results = @db_adapter.exec(command).values.flatten
+      results = @db_adapter.exec(command).values
       # returns a single project entity specified by ID
-      TM::Project.new(results[0], results[1])
+      TM::Project.new(results)
     end
 
 
@@ -163,8 +193,8 @@ module TM
         VALUES('#{pid}','#{priority}', '#{description}','#{Time.now.utc}' );
       SQL
       @db_adapter.exec(command)
-      task = @db_adapter.exec("SELECT * FROM tasks ORDER BY id DESC LIMIT 1").values.flatten
-      TM::Task.new(task[0], task[1], task[2], task[3], task[4], task[5])
+      task_params = @db_adapter.exec("SELECT * FROM tasks ORDER BY id DESC LIMIT 1").values.flatten
+      TM::Task.new(task_params)
     end
     # REQUIRED
     # Assign task to employee
@@ -191,9 +221,9 @@ module TM
       command = <<-SQL
         SELECT * FROM tasks WHERE id='#{task_id}'
       SQL
-      results = @db_adapter.exec(command).values.flatten
+      task_params = @db_adapter.exec(command).values.flatten
       # returns a single project entity specified by ID
-      TM::Task.new(results[0], results[1], results[2], results[3], results[4], results[5])
+      TM::Task.new(task_params)
     end
 
 ###########################################################################
@@ -239,7 +269,9 @@ module TM
     end
 
     def create_tasks_table
-      # FIXME current_timestamp
+      # TODO CONFIRM THAT THIS WORKS
+      # current_timestamp was not defaulting correctly
+      # think this is fixed!
       command = <<-SQL
         CREATE TABLE tasks(
         id SERIAL,
