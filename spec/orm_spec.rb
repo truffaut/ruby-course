@@ -5,7 +5,8 @@ describe "ORM" do
   RSpec::Mocks::setup(self)
 
   before(:all) do
-     TM.orm.instance_variable_set(:@__orm_instance, PG.connect({host: 'localhost', dbname: 'task-manager-test'}))
+    TM.orm.instance_variable_set(:@db_adapter, PG.connect({host: 'localhost', dbname: 'task-manager-test'}))
+    TM::orm.instance_variable_set(:@test, true)
   end
   before(:each) do
     # IO.any_instance.stub(:puts)
@@ -19,15 +20,21 @@ describe "ORM" do
     it "is created with a db adapter" do
       expect(TM.orm.db_adapter).not_to be_nil
     end
+    it "is connecting to the test database" do
+      expect(TM::orm.db_adapter.db).to eql("task-manager-test")
+    end
+    it "is a test instance" do
+      expect(TM::orm.instance_variable_get(:@test)).to eql(true)
+    end
   end # END SINGLETON INIT
 
-
-  let(:employee) { TM.orm.employee_create("Bob") }
-  before(:each) do
-    @name = "Bob"
-  end
-
   describe "employees" do
+
+    let(:employee) { TM.orm.employee_create("Bob") }
+    before(:each) do
+      @name = "Bob"
+    end
+
     describe "#employee_create(employee_name)" do
       it "creates an employee in the db and returns a EMPLOYEE entity" do
         expect(employee).to be_a(TM::Employee)
@@ -53,6 +60,29 @@ describe "ORM" do
         employees.each_with_index do |employee, i|
           expect(employee.name).to eql(names[i])
         end
+      end
+    end
+
+    describe "#employee_show_projects" do
+      it "returns a array of PROJECT entities which belong to employee" do
+        # pending ("Implementing")
+        populate_projects_and_employees
+        results_e1 = TM::orm.employee_show_projects(1)
+        results_e2 = TM::orm.employee_show_projects(2)
+        expect(results_e1.count).to eql(3)
+        expect(results_e2.count).to eql(2)
+      end
+    end
+
+    describe "#employee_details", pending => true do
+      it "returns an array of TASK entities owned by the employee" do
+
+      end
+    end
+
+    describe "#employee_history", pending => true do
+      it "returns an array of completed TASKS owned by the employee" do
+
       end
     end
 
@@ -117,8 +147,10 @@ describe "ORM" do
         employee = TM::orm.employee_create("DJ")
         proj2 = TM::orm.project_create("Boom Town")
         results = TM::orm.project_recruit(proj2.pid,1)
-        expect(results["proj_id"].to_i).to eql(proj2.pid)
-        expect(results["employee_id"].to_i).to eql(employee.eid)
+        expect(results).to be_a(Hash)
+        # binding.pry
+        expect(results.fetch(:project)).to be_a(TM::Project)
+        expect(results.fetch(:employee)).to be_a(TM::Employee)
       end
     end
 
@@ -131,7 +163,6 @@ describe "ORM" do
         3.times { |i| TM::orm.project_recruit(1, i+1)}
         # proj 2 should have 8 employees
         8.times { |i| TM::orm.project_recruit(2, i+1)}
-        # pending "still being implemented"
         results3 = TM::orm.project_employees(1)
         results8 = TM::orm.project_employees(2)
 
@@ -183,6 +214,12 @@ describe "ORM" do
         result = TM.orm.task_mark(task.tid)
         expect(result).to be_a(TM::Task)
         expect(result.complete).to eql(true)
+      end
+    end
+
+    describe "#task_assign(task_id, employee_id)", pending => true do
+      it "returns an array of completed TASKS owned by the employee" do
+
       end
     end
 
