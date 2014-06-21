@@ -9,6 +9,7 @@ module TM
 
     def initialize
       @db_adapter = PG.connect({host: 'localhost', dbname: 'task-manager'})
+      @test = false;
     end
 
 ###########################################################################
@@ -42,27 +43,34 @@ module TM
       Employee.new(employee_info)
     end
 
-              # REQUIRED
-              # COMMAND
-              # Show employee EID and all participating projects
-              def employee_show_projects(employee_id)
+    # REQUIRED
+    # COMMAND, FIXME
+    # Show employee EID and all participating projects
+    def employee_show_projects(employee_id)
+      command = <<-SQL
+        SELECT proj_id
+        FROM employees_projects
+        WHERE employee_id = '#{employee_id}';
+      SQL
+      # return a list of project id's
+      results = @db_adapter.exec(command).values.flatten
+      results.map { |pid| project_get(pid)}
+    end
 
-              end
+    # REQUIRED
+    # COMMAND, TODO
+    # Show all remaining tasks assigned to employee EID,
+    # along with the project name next to each task
+    def employee_details(employee_id)
+      # REQUIRES TASK ASSIGN
+    end
 
-              # REQUIRED
-              # COMMAND
-              # Show all remaining tasks assigned to employee EID,
-              # along with the project name next to each task
-              def employee_details(employee_id)
-
-              end
-
-              # REQUIRED
-              # COMMAND
-              # Show completed tasks for employee
-              def employee_history(employee_id)
-
-              end
+    # REQUIRED
+    # COMMAND, TODO
+    # Show completed tasks for employee
+    def employee_history(employee_id)
+      # REQUIRES task assign
+    end
 
     def employee_get(eid)
       command = <<-SQL
@@ -85,7 +93,6 @@ module TM
         SELECT * FROM projects;
       SQL
       results = @db_adapter.exec(command).values.flatten
-      binding.pry
       results.map {|proj| TM::Project.new(results)}
     end
 
@@ -132,7 +139,7 @@ module TM
       results.map {|proj| TM::Task.new(proj)}
     end
 
-    # REQUIRED
+    # REQUIRED, TESTED
     # COMMAND
     # Show employees participating in this project
     ##### RETURNS - an array of EMPLOYEE entities
@@ -150,10 +157,10 @@ module TM
       results.map { |eid| employee_get(eid)}
     end
 
-    # REQUIRED
+    # REQUIRED, TESTED
     # COMMAND
     # Adds employee EID to participate in project PID
-    ##### RETURNS - the added row in table in hash form
+    ##### RETURNS - a hash of the PROJECT entity and EMPLOYEE entity
     def project_recruit(pid, eid)
       # this links a employee id with
       # a project id in the join table
@@ -162,21 +169,26 @@ module TM
         VALUES('#{pid}','#{eid}');
       SQL
       @db_adapter.exec(command)
-      results = @db_adapter.exec("SELECT * FROM employees_projects ORDER BY id DESC LIMIT 1")
-      # returns a hash "proj_id" => "1", "employee_id" => "1", "id" => '1'
-      return results.[](0)
+      project = TM::orm.project_get(pid)
+      employee = TM::orm.employee_get(eid)
+      # binding.pry
+      return {project: project, employee: employee}
     end
 
-    # TODO
-    # Needs Testing
+    # TODO: testing
     # Returns a single project item
     def project_get(pid)
       command = <<-SQL
         SELECT * FROM projects WHERE id='#{pid}'
       SQL
-      results = @db_adapter.exec(command).values
+      results = @db_adapter.exec(command).values.flatten
       # returns a single project entity specified by ID
-      TM::Project.new(results)
+      begin
+        TM::Project.new(results)
+      rescue TypeError
+        puts "Can't retrieve project with ID= #{pid}" unless @test
+        return
+      end
     end
 
 
@@ -199,13 +211,14 @@ module TM
     # REQUIRED
     # Assign task to employee
     # associate task to employee
+    # RETURNS - a TASK entity and EMPLOYEE entity within a hash
     def task_assign(task_id, employee_id)
 
     end
 
     # REQUIRED
     # Mark task TID as complete
-    # returns the a TASK entity that was just marked compelted
+    #### RETURNS - the a TASK entity that was just marked compelted
     def task_mark(task_id)
       command = <<-SQL
         UPDATE tasks SET
@@ -242,11 +255,14 @@ module TM
     def clear_db
       @db_adapter.exec("DROP schema public cascade;")
       @db_adapter.exec("CREATE schema public;")
+      puts "Database Cleared".yellow unless @test
     end
 
     def reint_database
+      puts "Starting Reinitialization".yellow unless @test
       clear_db
       create_all_tables
+      puts "Completed Reinitialization".green unless @test
     end
 
 ###########################################################################
@@ -266,6 +282,7 @@ module TM
         puts "Error creating Projects table".red
         return
       end
+      puts "Completed Creating Projects Table".green unless @test
     end
 
     def create_tasks_table
@@ -280,6 +297,7 @@ module TM
         creationTime timestamp without time zone DEFAULT current_timestamp,
         proj_id integer REFERENCES projects(id),
         completed boolean DEFAULT false,
+        employee_owner integer,
         PRIMARY KEY(id)
         );
       SQL
@@ -289,6 +307,7 @@ module TM
         puts "Error creating Tasks table".red
         return
       end
+      puts "Completed Creating Tasks Table".green unless @test
     end
 
     def create_employees_table
@@ -305,6 +324,7 @@ module TM
         puts "Error creating Employees table".red
         return
       end
+      puts "Completed Creating Employees Table".green unless @test
     end
 
     # JOIN TABLES
@@ -323,6 +343,7 @@ module TM
         puts "Error creating Employees-Projects table".red
         return
       end
+      puts "Completed Creating Employees Table".green unless @test
     end
 
     # def create_employeestasks_table
