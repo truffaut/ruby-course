@@ -43,9 +43,10 @@ module TM
       Employee.new(employee_info)
     end
 
-    # REQUIRED
-    # COMMAND, FIXME
+    # REQUIRED, TESTED
+    # COMMAND
     # Show employee EID and all participating projects
+    ##### RETURNS - an array of projects
     def employee_show_projects(employee_id)
       command = <<-SQL
         SELECT proj_id
@@ -72,6 +73,7 @@ module TM
       # REQUIRES task assign
     end
 
+    # TODO: testing
     def employee_get(eid)
       command = <<-SQL
         SELECT * FROM employees WHERE id='#{eid}'
@@ -171,7 +173,6 @@ module TM
       @db_adapter.exec(command)
       project = TM::orm.project_get(pid)
       employee = TM::orm.employee_get(eid)
-      # binding.pry
       return {project: project, employee: employee}
     end
 
@@ -196,9 +197,11 @@ module TM
 ########################### Tasks Model Methods ###########################
 ###########################################################################
 
-    # REQUIRED
+    # REQUIRED, TESTED
     # Add a new task
     # associate task with a pid
+    ##### DATABASE - adds a task into the db
+    ##### RETURNS - a task entity
     def task_create(pid, priority, description)
       command = <<-SQL
         INSERT INTO tasks (proj_id, priority, description, creationTime)
@@ -216,7 +219,7 @@ module TM
 
     end
 
-    # REQUIRED
+    # REQUIRED, TESTED
     # Mark task TID as complete
     #### RETURNS - the a TASK entity that was just marked compelted
     def task_mark(task_id)
@@ -228,7 +231,7 @@ module TM
       @db_adapter.exec(command)
       task_get(task_id)
     end
-
+    # TODO: testing
     # Returns a single TASK entity
     def task_get(task_id)
       command = <<-SQL
