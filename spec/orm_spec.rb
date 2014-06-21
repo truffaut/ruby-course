@@ -65,12 +65,13 @@ describe "ORM" do
 
     describe "#employee_show_projects" do
       it "returns a array of PROJECT entities which belong to employee" do
-        # pending ("Implementing")
         populate_projects_and_employees
+        3.times { |i| TM::orm.project_recruit(i+1, 1)}
+        3.times { |i| TM::orm.project_recruit(i+2, 2)}
         results_e1 = TM::orm.employee_show_projects(1)
         results_e2 = TM::orm.employee_show_projects(2)
         expect(results_e1.count).to eql(3)
-        expect(results_e2.count).to eql(2)
+        expect(results_e2.count).to eql(3)
       end
     end
 
@@ -203,7 +204,6 @@ describe "ORM" do
       it "returned TASK is the correct task" do
         task2 = TM.orm.task_create(proj_id, 6, "AWESOME TASK SO AWESOME!")
         result = TM.orm.task_get(task.tid)
-        # binding.pry
         expect(are_tasks_equal(task, result)).to eq(true)
         expect(are_tasks_equal(task2, result)).to eq(false)
       end
@@ -217,9 +217,14 @@ describe "ORM" do
       end
     end
 
-    describe "#task_assign(task_id, employee_id)", pending => true do
+    describe "#task_assign(task_id, employee_id)" do
       it "returns an array of completed TASKS owned by the employee" do
-
+        populate_tasks_projects_employees
+        results = TM::orm.task_assign(1, 1)
+        expect(results).to be_a(Hash)
+        expect(results[:task]).to be_a(TM::Task)
+        expect(results[:employee]).to be_a(TM::Employee)
+        expect(results[:task].owned_by_eid).to eql("1")
       end
     end
 
