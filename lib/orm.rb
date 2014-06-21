@@ -211,12 +211,21 @@ module TM
       task_params = @db_adapter.exec("SELECT * FROM tasks ORDER BY id DESC LIMIT 1").values.flatten
       TM::Task.new(task_params)
     end
-    # REQUIRED
+
+    # REQUIRED, TESTED
     # Assign task to employee
     # associate task to employee
     # RETURNS - a TASK entity and EMPLOYEE entity within a hash
     def task_assign(task_id, employee_id)
-
+      command = <<-SQL
+        UPDATE tasks SET
+        employee_owner = '#{employee_id}'
+        WHERE id='#{task_id}'
+      SQL
+      @db_adapter.exec(command)
+      task = TM::orm.task_get(task_id)
+      employee = TM::orm.employee_get(employee_id)
+      return {task: task, employee: employee}
     end
 
     # REQUIRED, TESTED
@@ -231,7 +240,7 @@ module TM
       @db_adapter.exec(command)
       task_get(task_id)
     end
-    # TODO: testing
+    # TESTED
     # Returns a single TASK entity
     def task_get(task_id)
       command = <<-SQL
