@@ -13,7 +13,7 @@ module TM
     end
 
 ###########################################################################
-########################### Employees Model Methods ###########################
+########################### Employees Model Methods #######################
 ###########################################################################
 
     # REQUIRED, TESTED
@@ -101,7 +101,7 @@ module TM
     # REQUIRED, TESTED
     # COMMAND
     # Create a new project
-    ##### DATABASE - addes project to database
+    ##### DATABASE - adds project to database
     ##### RETURNS - a project entity
     def project_create(name)
       command = <<-SQL
