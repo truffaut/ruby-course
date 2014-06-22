@@ -82,13 +82,13 @@ describe "ORM" do
 
       describe "#employee_details" do
         it "returns an array of TASK entities owned by the employee" do
-
+          # TODO
         end
       end
 
       describe "#employee_history", pending => true do
         it "returns an array of completed TASKS owned by the employee" do
-
+          # TODO
         end
       end
 
@@ -115,6 +115,7 @@ describe "ORM" do
       describe "#project_get(pid)" do
         it "returns a PROJECT entity from the database" do
           proj = TM::orm.project_get(1)
+          # TODO
         end
       end
     end
