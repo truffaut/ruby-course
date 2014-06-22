@@ -63,40 +63,59 @@ describe "ORM" do
       end
     end
 
-    describe "#employee_show_projects" do
-      it "returns a array of PROJECT entities which belong to employee" do
+    describe "employee projects and tasks" do
+
+      before(:each) do
         populate_projects_and_employees
         3.times { |i| TM::orm.project_recruit(i+1, 1)}
         3.times { |i| TM::orm.project_recruit(i+2, 2)}
-        results_e1 = TM::orm.employee_show_projects(1)
-        results_e2 = TM::orm.employee_show_projects(2)
-        expect(results_e1.count).to eql(3)
-        expect(results_e2.count).to eql(3)
       end
+
+      describe "#employee_show_projects" do
+        it "returns a array of PROJECT entities which belong to employee" do
+          results_e1 = TM::orm.employee_show_projects(1)
+          results_e2 = TM::orm.employee_show_projects(2)
+          expect(results_e1.count).to eql(3)
+          expect(results_e2.count).to eql(3)
+        end
+      end
+
+      describe "#employee_details" do
+        it "returns an array of TASK entities owned by the employee" do
+
+        end
+      end
+
+      describe "#employee_history", pending => true do
+        it "returns an array of completed TASKS owned by the employee" do
+
+        end
+      end
+
     end
 
-    describe "#employee_details", pending => true do
-      it "returns an array of TASK entities owned by the employee" do
-
-      end
-    end
-
-    describe "#employee_history", pending => true do
-      it "returns an array of completed TASKS owned by the employee" do
-
-      end
-    end
 
   end # END EMPLOYEES
 
   describe "projects" do
 
-    describe "#project_create(name)" do
-      it "creates a project in the database and returns a PROJECT entity" do
-        name = "Cooking"
-        project = TM.orm.project_create(name)
-        expect(project).to be_a(TM::Project)
-        expect(project.name).to eql(name)
+    describe "creates and gets a project" do
+
+      before(:each) do
+        @name = "Cooking"
+        @project = TM.orm.project_create(@name)
+      end
+
+      describe "#project_create(name)" do
+        it "creates a project in the database and returns a PROJECT entity" do
+          expect(@project).to be_a(TM::Project)
+          expect(@project.name).to eql(@name)
+        end
+      end
+      describe "#project_get(pid)" do
+        it "returns a PROJECT entity from the database" do
+          proj = TM::orm.project_get(1)
+        end
       end
     end
 
@@ -149,7 +168,6 @@ describe "ORM" do
         proj2 = TM::orm.project_create("Boom Town")
         results = TM::orm.project_recruit(proj2.pid,1)
         expect(results).to be_a(Hash)
-        # binding.pry
         expect(results.fetch(:project)).to be_a(TM::Project)
         expect(results.fetch(:employee)).to be_a(TM::Employee)
       end
@@ -218,7 +236,7 @@ describe "ORM" do
     end
 
     describe "#task_assign(task_id, employee_id)" do
-      it "returns an array of completed TASKS owned by the employee" do
+      it "returns a hash of the TASK and EMPLOYEEE entities" do
         populate_tasks_projects_employees
         results = TM::orm.task_assign(1, 1)
         expect(results).to be_a(Hash)
