@@ -62,8 +62,17 @@ module TM
     # COMMAND, TODO
     # Show all remaining tasks assigned to employee EID,
     # along with the project name next to each task
+    ##### RETURNS - an array of tasks where completed = false
     def employee_details(employee_id)
-      # REQUIRES TASK ASSIGN
+      # REQUIRES task assign
+      command = <<-SQL
+        SELECT *
+        FROM tasks
+        WHERE employee_owner = '#{employee_id}';
+      SQL
+      # return a list of project id's
+      results = @db_adapter.exec(command).values.flatten
+      results.map { |pid| task_get(pid)}
     end
 
     # REQUIRED
@@ -71,6 +80,7 @@ module TM
     # Show completed tasks for employee
     def employee_history(employee_id)
       # REQUIRES task assign
+      # REQUIRES task completed
     end
 
     # TODO: testing
@@ -94,8 +104,8 @@ module TM
       command = <<-SQL
         SELECT * FROM projects;
       SQL
-      results = @db_adapter.exec(command).values.flatten
-      results.map {|proj| TM::Project.new(results)}
+      results = @db_adapter.exec(command).values
+      results.map {|proj| TM::Project.new(proj)}
     end
 
     # REQUIRED, TESTED
@@ -176,7 +186,7 @@ module TM
       return {project: project, employee: employee}
     end
 
-    # TODO: testing
+    # TESTED
     # Returns a single project item
     def project_get(pid)
       command = <<-SQL
@@ -357,45 +367,28 @@ module TM
       end
       puts "Completed Creating Employees Table".green unless @test
     end
+##################################################################
+#########################CAN BE DELETED###########################
+##################################################################
+    def populate_projects_and_employees
+      # employee 1 - 3 projects = pid1,pid2,pid3
+      # employee 2 - 2 projects = pid3,pid4, pid5
+      5.times { |i| TM::orm.project_create("Project #{i+1}")}
+      2.times { |i| TM::orm.employee_create("Employee #{i+1}")}
+    end
 
-    # def create_employeestasks_table
-    #   command = <<-SQL
-    #     CREATE TABLE projects_tasks(
-    #     id SERIAL,
-    #     PRIMARY KEY(id),
-    #     employee_id integer REFERENCES employees(id),
-    #     task_id integer REFERENCES tasks(id)
-    #     );
-    #   SQL
-    #   begin
-    #     @db_adapter.exec(command)
-    #   rescue
-    #     puts "Error Creating Employee-Tasks table".red
-    #     return
-    #   end
-    #   puts "Employee-Tasks Table Created".green
-    # end
+    def populate_tasks_projects_employees
+      populate_projects_and_employees
+      3.times {|i| TM::orm.task_create(1, i*2, "task #{i+1}")}
+      # pid1 = 3 tasks, tid1,tid2,tid3
+      5.times {|i| TM::orm.task_create(4, i*2, "task #{i+1}")}
+      # pid4 = 5 tasks. tid4,5,6,7,8
+    end
 
-    # def create_projectstasks_table
-    #   command = <<-SQL
-    #     CREATE TABLE projects_tasks(
-    #     id SERIAL,
-    #     PRIMARY KEY(id),
-    #     proj_id integer REFERENCES projects(id),
-    #     task_id integer REFERENCES tasks(id)
-    #     );
-    #   SQL
-    #   begin
-    #     @db_adapter.exec(command)
-    #   rescue
-    #     puts "Error Creating Projects-Tasks table".red
-    #     return
-    #   end
-    #   puts "Projects-Tasks Table Created".green
-    # end
 
-  end
+  end # END ORM CLASS
 
+  # SINGLETON INITIALIZATION
   def self.orm
     @__orm_instance ||= ORM.new
   end
