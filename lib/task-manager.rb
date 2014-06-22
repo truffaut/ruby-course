@@ -13,207 +13,176 @@ module TM
   end
 
   def self.parse_command
-    print "TM-$: "
-    # partition only partitions up to the first instance
-    input = gets.chomp
-    @history << input
-    input = input.strip.partition(" ")
-    command = input.first
-    # split the remaining argument up
-    args = input.last.split(" ")
+    print "TM-$: ".red
+    input = gets.chomp.downcase.split
 
-    case command
-      when "mark"
-        # marks a task as completed
-        # 1-takes 1 argument: tid
-        TM.cmd_mark(args)
-      when 'add'
-        # adds a task to a project
-        # 3-takes 3 arguments: pid, priority, desc
-        TM.cmd_add(args)
-      when 'history', 'show'
-        # show the completed tasks
-        # 1-takes one argument: project_id
-        if command == "history"
-          TM.history_show_helper(args, :history)
-        elsif command == "show"
-          TM.history_show_helper(args, :show)
-        end
-      when 'create'
-        # create a project
-        # 1-takes one argument: project_name
-        TM.cmd_create(args)
-      when 'list'
-        # Lists all projects
-        # 0-takes no arguments
-        TM.cmd_list()
-      when 'help'
-        # shows a list of all commands
-        # 0-takes no arguments
-        TM.help
-      when 'exit', 'q', 'quit'
-        puts "Thank you for using the PM Terminal"
-        @active = false
-      else
-        puts "I'm sorry, I am unable to do that..."
-    end
-  end
-#
-# Begin Commands
-#
-  def self.cmd_mark(args)
-    if args.count != 1
-      TM.invalid_args("arg count")
-      return nil
-    end
-    tid = Integer(args.first)
-    TM::Task.get_task(tid).mark_complete
-  end
-
-  def self.cmd_add(args)
-
-    if args.count < 3
-      TM.invalid_args("arg count")
-      return nil
-    end
-
-    begin
-      project_id = Integer(args[0])
-      priority = Integer(args[1])
-    rescue
-      TM.invalid_args("need integers")
-      return nil
-    end
-
-    project = TM::Project.get_project(project_id)
-    if project == nil
-      puts "project does not exist"
-      return nil
-    end
-    desc = args[2..-1].join(" ")
-    project.add_task(desc, priority)
-    puts "Created task in #{project.name}"
-    puts "-- DESCRIPTION: #{desc}"
-  end
-
-
-  def self.history_show_helper(args, type)
-    # type is either :show or :history
-    # completed will execute the show
-    if args.count != 1
-      puts "Wrong number of arguments."
-      return nil
-    end
-
-    pid = Integer(args[0])
-    project = TM::Project.get_project(pid)
-
-    if project == nil
-      puts "project with #{pid} could not be found"
-      return nil
-    end
-
-    puts "ID: #{project.pid} - NAME: #{project.name}"
-
-    if type == :history
-      self.cmd_history(project)
-    elsif type == :show
-      self.cmd_show(project)
-    end
-
-  end
-
-  def self.cmd_history(project)
-    # Takes one argument
-    # PID
-    # show completed tasks for project id
-    project.completed_tasks.each do |tk|
-      self.print_task_info({:priority => tk.priority,
-        :pid => tk.pid, :desc => tk.desc,
-        :ctime => tk.creation_time, :tid => tk.task_id})
-    end
-  end
-
-  def self.cmd_show(project)
-    # Takes one argument
-    # PID
-    # show the remaining tasks for project id
-    project.incomplete_tasks.each do |tk|
-      self.print_task_info({:priority => tk.priority,
-        :pid => tk.pid, :desc => tk.desc,
-        :ctime => tk.creation_time, :tid => tk.task_id})
-    end
-  end
-
-  def self.cmd_create(args)
-    if args.count != 1
-      puts "Wrong number of arguments."
-      return nil
-    end
-    name = args[0]
-    TM::Project.new(name)
-    puts "New project created named: #{name}"
-  end
-
-  def self.cmd_list
-    projects = TM::Project.get_projects
-    if projects.empty?
-      puts "You have no projects to list"
-    else
-      projects.each do |project|
-        puts "ID: #{project.pid} - NAME: #{project.name}"
+    # Input is a single command
+    if input.count == 1
+      case input[0]
+        when 'help'
+          return TM.help
+          # return self.parse_command
+        when 'exit','q','quit'
+          exit
       end
     end
+
+    type = input.shift
+    command = input.shift
+    args = input
+
+    #########################
+    ## NO ARGUMENT COMMAND ##
+    #########################
+    if args.count == 0
+      case type
+        when 'project'
+          if command == 'list'
+            # project list
+            return TM::Commands.project_list
+          else
+            puts "Command Not Found".red
+          end
+        when 'emp'
+          if command == 'list'
+            # emp list
+            return TM::Command.employees_list
+          else
+            puts "Command Not Found".red
+          end
+        else
+          puts "Command Type Not Found".red
+      end
+    end
+
+    ##########################
+    ## ONE ARGUMENT COMMAND ##
+    ##########################
+    if args.count == 1
+      arg1 = args.shift
+      case type
+        when 'project'
+          if command == 'create'
+            # project create NAME
+            return TM::Commands.project_create(arg1)
+          elsif command == 'show'
+            # project show PID
+            return TM::Commands.project_show(arg1)
+          elsif command == 'history'
+            # project history PID
+            return TM::Commands.project_history(arg1)
+          elsif command == 'employees'
+            # project employees PID
+            return TM::Commands.project_employees(arg1)
+          else
+            puts "Project Command Not Found!".red
+          end
+        when 'task'
+          if command == 'mark'
+            return TM::Commands.task_mark(arg1) # task mark TID
+          else
+            puts "Task Command Not Found!".red
+          end
+        when 'emp'
+          if command == 'create'
+            return TM::Commands.emp_create(arg1) # emp create NAME
+          elsif command == 'show'
+            return TM::Commands.emp_show(arg1) # emp show EID
+          elsif command == 'details'
+            return TM::Commands.emp_details(arg1) # emp details EID
+          elsif command == 'history'
+            return TM::Commands.emp_history(arg1) # emp history EID
+          else
+            puts "Employee Command Not Found".red
+          end
+      else
+        puts "Command Type Not Found".red
+      end
+    end
+
+    ##########################
+    ## TWO ARGUMENT COMMAND ##
+    ##########################
+    if args.count == 2
+      arg1 = args.shift
+      arg2 = args.shift
+      case type
+        when 'project'
+          if command == 'recruit'
+            return TM::Commands.project_recruit(arg1, arg2)
+          else
+            puts "Command Not Found".red
+          end
+        when 'task'
+          if command == 'assign'
+            return TM::Commands.task_assign(arg1, arg2)
+          else
+            puts "Command Not Found".red
+          end
+        else
+          puts "Command Type Not Found".red
+      end
+    end
+
+    ############################
+    ## THREE ARGUMENT COMMAND ##
+    ############################
+    # task create PID PRIORITY DESC
+    if args.count > 2
+      arg1 = args.shift
+      arg2 = args.shift
+      arg3 = args.join(" ")
+      case type
+        when 'task'
+          if command == 'create'
+            return TM::Commands.task_create(arg1, arg2, arg3)
+          else
+            puts "Command Not Found".red
+          end
+        else
+          puts "Command Type Not Found".red
+      end
+
+    end
+    puts "THIS SHOULD NOT BE RUNNING!".red
   end
-#
-# End Commands
-#
+
 #
 # Begin Status Messages
 #
-  def self.invalid_args(type)
-    case type
-      when :number
-        puts "invalid number of arguments!".red
-      when :type
-        puts "invalid type of arguments!".red
-    end
-
-  end
 
   def self.start_message
-    puts "-------------------------------------------------------------"
-    puts "Welcome to Project Manager Pro®. What can I do for you today?"
-    puts "-------------------------------------------------------------"
+    puts "-------------------------------------------------------------".green
+    puts "Welcome to Project Manager Pro®. What can I do for you today?".green
+    puts "-------------------------------------------------------------".green
   end
 
   def self.help
-  puts "
-  Available Commands:
-  -- <name>-> <----<args>------> <-------<info>------------------------->
-  -- help                       - Show these commands again
-  -- list                       - List all projects
-  -- create   NAME              - Create a new project with name=NAME
-  -- show     PID               - Show remaining tasks for project with id=PID
-  -- history  PID               - Show completed tasks for project with id=PID
-  -- add      PID PRIORITY DESC - Add a new task to project with id=PID
-  -- mark     TID               - Mark task with id=TID as complete
-  -- exit/q,quit                       - exits the program
-  ".yellow
-
-  end
-
-  # :priority, :desc, :pid, :ctime, :tid
-  def self.print_task_info(tsk)
-    puts "
-    Task ID: #{tsk[:tid]}
-    Priority: #{tsk[:priority]} | Creation Time: #{tsk[:ctime]}
-    #{tsk[:desc]}
-    "
+    puts " Available Commands: ---------------------------------------------------------------".blue
+    puts " project list      ----      = List all projects".light_blue
+    puts " project create    NAME      = Create a new project".blue
+    puts " project show      PID       = Show remaining tasks for project PID".light_blue
+    puts " project history   PID       = Show completed tasks for project PID".blue
+    puts " project employees PID       = Show employees participating in this project".light_blue
+    puts " project recruit   PID EID   = Adds employee EID to participate in project PID".blue
+    puts " task create       PID PRIORITY DESCRIPTION".blue
+    puts "                          ^^ = Add a new task to project PID".light_blue
+    puts " task assign       TID EID   = Assign task to employee".blue
+    puts " task mark         TID       = Mark task TID as complete".light_blue
+    puts " emp list          ----      = List all employees".blue
+    puts " emp create        NAME      = Create a new employee".light_blue
+    puts " emp show          EID       = Show employee EID and all participating projects".blue
+    puts " emp details       EID       = Show all remaining tasks assigned to employee EID,".light_blue
+    puts "                                along with the project name next to each task".light_blue
+    puts " emp history       EID       = Show completed tasks for employee with id=EID".blue
+    puts " help              ----      = Show these commands again".light_blue
+    puts " exit/q/quit       ----      = Exit Program".blue
+    puts " ------------------------------------------------------------------------------------".blue
   end
 #
 # End Status Messages
 #
+
 end
 
 # Require all of our project files
@@ -221,6 +190,7 @@ require_relative 'task-manager/task.rb'
 require_relative 'task-manager/project.rb'
 require_relative 'task-manager/employee.rb'
 require_relative 'orm.rb'
+require_relative 'commands.rb'
 require 'pry-byebug'
 require 'colorize'
 require 'pg'
