@@ -16,30 +16,34 @@ class TM::Project
   def self.list
     TM::orm.projects_list
   end
-
+  # README:
+  # returns the project just created
   def self.create(name)
     TM::orm.project_create(name)
   end
 
+  # return an array of employees entities
+  ##### participating in project
   def self.employees(pid)
-
+    TM::orm.project_employees(pid)
   end
 
+  # returns a hash of the project and employee entity just linked
   def self.recruit(pid, eid)
-
+    TM::orm.project_recruit(pid, eid)
   end
 
-
-  # TODO: Implement the completed_task method using the new ORM helpers
-  # THE ORM does not sort the results so they still need to be sorted
+  # COMPLETED
+  # TODO: NEEDS CLASS TESTING
+  # returns array of completed tasks
   def self.completed_tasks(pid)
-    # FIXME: REQUIRED TASK MARK TO BE COMPLETED
-    completed = TM::orm.projects_history(pid)
+    completed = TM::orm.project_history(pid)
     completed.sort {|a, b| a.creation_time <=> b.creation_time}
   end
 
-  # Implement the imcomplete_task method using the new ORM helpers
-  # THE ORM does not sort the results so they still need to be sorted
+  # COMPLETED
+  # TODO: NEEDS CLASS TESTING
+  # returns array of incompleted tasks
   def self.incomplete_tasks(pid)
     incomplete = TM::orm.project_show(pid)
     incomplete.sort {|a,b| (b.priority <=> a.priority) == 0 ? (a.creation_time <=> b.creation_time) : (b.priority <=> a.priority)}

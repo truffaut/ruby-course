@@ -48,8 +48,9 @@ module TM
     # Show employee EID and all participating projects
     ##### RETURNS - an array of projects
     def employee_show_projects(employee_id)
+      # BUG 001 HERE
       command = <<-SQL
-        SELECT proj_id
+        SELECT DISTINCT proj_id
         FROM employees_projects
         WHERE employee_id = '#{employee_id}';
       SQL
@@ -65,22 +66,27 @@ module TM
     ##### RETURNS - an array of tasks where completed = false
     def employee_details(employee_id)
       # REQUIRES task assign
-      command = <<-SQL
-        SELECT *
-        FROM tasks
-        WHERE employee_owner = '#{employee_id}';
-      SQL
-      # return a list of project id's
-      results = @db_adapter.exec(command).values.flatten
-      results.map { |pid| task_get(pid)}
+      # command = <<-SQL
+      #   SELECT *
+      #   FROM tasks
+      #   WHERE employee_owner = '#{employee_id}';
+      # SQL
+      # # return a list of project id's
+      # results = @db_adapter.exec(command).values.flatten
+      # results.map { |pid| task_get(pid)}
     end
 
     # REQUIRED
-    # COMMAND, TODO
+    # COMMAND, FIXME
     # Show completed tasks for employee
-    def employee_history(employee_id)
-      # REQUIRES task assign
-      # REQUIRES task completed
+    def employee_history(eid)
+      command = <<-SQL
+        SELECT * FROM tasks
+        WHERE employee_owner='#{eid}'
+        AND completed = 't';
+      SQL
+      results = @db_adapter.exec(command).values
+      results.map {|tsk| TM::Task.new(tsk) }
     end
 
     # TODO: testing
@@ -158,8 +164,11 @@ module TM
     def project_employees(proj_id)
       # command returns a list of employee_ids
       # involved in the specific projcet
+      # BUG 001: currently rows are not unique and
+      # recruiting does not check
+      # for a combination that already exists
       command = <<-SQL
-        SELECT employee_id
+        SELECT DISTINCT employee_id
         FROM employees e
         JOIN employees_projects ep
         ON e.id = ep.employee_id

@@ -17,11 +17,11 @@ module TM
     input = gets.chomp.downcase.split
 
     # Input is a single command
+    # DONE
     if input.count == 1
       case input[0]
         when 'help'
           return TM.help
-          # return self.parse_command
         when 'exit','q','quit'
           exit_message
           exit
@@ -53,18 +53,19 @@ module TM
     #########################
     ## NO ARGUMENT COMMAND ##
     #########################
+    # DONE
     if args.count == 0
       case type
         when 'project'
           if command == 'list'
-            # project list DONE
+            # project list
             return TM::Commands.project_list
           else
             puts "Command Not Found".red
           end
         when 'emp'
           if command == 'list'
-            # emp list, TODO
+            # emp list
             return TM::Commands.emp_list
           else
             puts "Command Not Found".red
@@ -85,17 +86,17 @@ module TM
             # project show PID
             return TM::Commands.project_show(arg1)
           elsif command == 'history'
-            # project history PID, TODO
+            # project history PID, DONE
             return TM::Commands.project_history(arg1)
           elsif command == 'employees'
-            # project employees PID, TODO
+            # project employees PID, DONE
             return TM::Commands.project_employees(arg1)
           else
             puts "Project Command Not Found!".red
           end
         when 'task'
           if command == 'mark'
-            # task mark TID, TODO
+            # task mark TID, DONE
             return TM::Commands.task_mark(arg1)
           else
             puts "Task Command Not Found!".red
@@ -121,20 +122,19 @@ module TM
     ##########################
     ## TWO ARGUMENT COMMAND ##
     ##########################
+    # DONE
     if args.count == 2
       arg1 = args.shift
       arg2 = args.shift
       case type
         when 'project'
           if command == 'recruit'
-            # TODO
             return TM::Commands.project_recruit(arg1, arg2)
           else
             puts "Command Not Found".red
           end
         when 'task'
           if command == 'assign'
-            # TODO
             return TM::Commands.task_assign(arg1, arg2)
           else
             puts "Command Not Found".red
@@ -161,26 +161,26 @@ module TM
   end
 
   def self.help
-    puts " Available Commands: ---------------------------------------------------------------".blue
+    puts " Available Commands: ---------------------------------------------------------------".green
     puts " project list      ----      = List all projects".light_blue
     puts " project create    NAME      = Create a new project".blue
     puts " project show      PID       = Show remaining tasks for project PID".light_blue
-    puts " project history   PID       = Show completed tasks for project PID".red
-    puts " project employees PID       = Show employees participating in this project".red
-    puts " project recruit   PID EID   = Adds employee EID to participate in project PID".red
+    puts " project history   PID       = Show completed tasks for project PID".blue
+    puts " project employees PID       = Show employees participating in this project".light_blue
+    puts " project recruit   PID EID   = Adds employee EID to participate in project PID".blue
     puts " task create       PID PRIORITY DESCRIPTION".blue
     puts "                          ^^ = Add a new task to project PID".light_blue
-    puts " task assign       TID EID   = Assign task to employee".red
-    puts " task mark         TID       = Mark task TID as complete".yellow
+    puts " task assign       TID EID   = Assign task to employee".blue
+    puts " task mark         TID       = Mark task TID as complete".light_blue
     puts " emp list          ----      = List all employees".blue
     puts " emp create        NAME      = Create a new employee".light_blue
-    puts " emp show          EID       = Show employee EID and all participating projects".red
-    puts " emp details       EID       = Show all remaining tasks assigned to employee EID,".red
-    puts "                                along with the project name next to each task".red
-    puts " emp history       EID       = Show completed tasks for employee with id=EID".red
+    puts " emp show          EID       = Show employee EID and all participating projects".blue #blue
+    puts " emp details       EID       = Show all remaining tasks assigned to employee EID,".red #light_blue
+    puts "                                along with the project name next to each task".red # light_blue
+    puts " emp history       EID       = Show completed tasks for employee with id=EID".blue # blue
     puts " help              ----      = Show these commands again".light_blue
     puts " exit/q/quit       ----      = Exit Program".blue
-    puts " ------------------------------------------------------------------------------------".blue
+    puts " ------------------------------------------------------------------------------------".green
   end
 
   def self.exit_message

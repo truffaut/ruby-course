@@ -19,14 +19,12 @@ class TM::Task
     TM.orm.task_create(pid, priority, desc)
   end
 
-  # TODO
   # RETURNS = a hash with a TASK and EMPLOYEE entity
   def self.assign(tid, eid)
     TM.orm.task_assign(tid, eid)
   end
 
-  # TODO
-  # RETURNS =
+  # RETURNS the a TASK entity that was just marked completed
   def self.mark(tid)
     TM.orm.task_mark(tid)
   end

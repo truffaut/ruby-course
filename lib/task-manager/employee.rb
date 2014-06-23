@@ -8,16 +8,29 @@ class TM::Employee
   end
 
   def self.list
-    TM::orm.employees_list
+    begin
+      TM::orm.employees_list
+    rescue Exception => e
+      puts e.inspect
+    end
   end
 
   def self.create(name)
-    TM::orm.employee_create(name)
+    begin
+      TM::orm.employee_create(name)
+    rescue Exception => e
+      puts e.inspect
+    end
   end
 
-  # TODO
+  # returns an array of projects which the employee
+  # is recruited for
   def self.show(eid)
-
+    begin
+      TM::orm.employee_show_projects(eid)
+    rescue Exception => e
+      puts e.inspect
+    end
   end
 
   # TODO
@@ -25,9 +38,18 @@ class TM::Employee
 
   end
 
-  # TODOS
+  # TODO
+  # RETURNS An array of completed tasks that hte employee owns
   def self.history(eid)
+    TM::orm.employee_history(eid)
+  end
 
+  def self.get(eid)
+    begin
+      TM::orm.employee_get(eid)
+    rescue Exception => e
+      puts e.inspect
+    end
   end
 
 end
