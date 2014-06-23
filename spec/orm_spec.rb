@@ -80,15 +80,21 @@ describe "ORM" do
         end
       end
 
-      describe "#employee_details" do
+      describe "#employee_details", :pending => true do
         it "returns an array of TASK entities owned by the employee" do
           # TODO
         end
       end
 
-      describe "#employee_history", pending => true do
+      describe "#employee_history" do
         it "returns an array of completed TASKS owned by the employee" do
-          # TODO
+          populate_tasks_projects_employees
+          TM::orm.task_assign(1, 1)
+          TM::orm.task_assign(2, 1)
+          TM::orm.task_mark(1)
+          TM::orm.task_mark(2)
+          results = TM::orm.employee_history(1)
+          expect(results.count).to eql(2)
         end
       end
 
