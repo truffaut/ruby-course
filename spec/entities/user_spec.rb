@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'bcrypt'
 
 describe DoubleDog::User do
 
@@ -6,13 +7,13 @@ describe DoubleDog::User do
   # in plain-text (BAD) or using a hashing library like bcrypt (good).
   describe '#has_password?' do
     it "returns false for an incorrect password" do
-      user = DoubleDog::User.new(nil, 'Dan', '123')
+      user = DoubleDog::User.new(nil, 'Dan', BCrypt::Password.create('123'))
       result = user.has_password?('wrong password')
       expect(result).to eq false
     end
 
     it "returns true for a correct password" do
-      user = DoubleDog::User.new(nil, 'Dan', '123')
+      user = DoubleDog::User.new(nil, 'Dan', BCrypt::Password.create('123'))
       result = user.has_password?('123')
       expect(result).to eq true
     end

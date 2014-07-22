@@ -1,3 +1,6 @@
+require 'bcrypt'
+require 'pry-byebug'
+
 module DoubleDog
   class User
     attr_reader :id, :username
@@ -12,7 +15,7 @@ module DoubleDog
     def has_password?(pass)
       # Note: Storing passwords in plain text is NOT acceptable.
       # In practice, you will use bcrypt to securely store *hashes* of your user's passwords.
-      @password == pass
+      BCrypt::Password.new(@password) == pass
     end
 
     def admin?

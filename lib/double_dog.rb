@@ -1,4 +1,5 @@
 require 'pry-byebug'
+require 'bcrypt'
 
 module DoubleDog
   def self.db
@@ -12,6 +13,7 @@ require_relative 'double_dog/entities/order.rb'
 
 require_relative 'double_dog/database/in_memory.rb'
 
+require_relative 'double_dog/scripts/transaction_script.rb'
 require_relative 'double_dog/scripts/create_account.rb'
 require_relative 'double_dog/scripts/create_item.rb'
 require_relative 'double_dog/scripts/sign_in.rb'

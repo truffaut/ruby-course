@@ -1,11 +1,10 @@
+require 'pry-byebug'
 module DoubleDog
-  class SignIn
+  class SignIn < TransactionScript
 
     def run(params)
-      return failure(:nil_username) if params[:username].nil?
-      return failure(:blank_username) if params[:username] == ''
-      return failure(:nil_password) if params[:password].nil?
-      return failure(:blank_password) if params[:password] == ''
+      return failure(:invalid_username) unless valid_username?(params[:username])
+      return failure(:invalid_password) unless valid_password?(params[:password])
 
       user = DoubleDog.db.get_user_by_username(params[:username])
 
@@ -14,17 +13,16 @@ module DoubleDog
 
       session_id = DoubleDog.db.create_session(user_id: user.id)
       retrieved_user = DoubleDog.db.get_user_by_session_id(session_id)
-      return success(:user => retrieved_user, :session_id => session_id)
+
+      success(:user => retrieved_user, :session_id => session_id)
     end
 
-  private
-
-    def failure(error_name)
-      return :success? => false, :error => error_name
+    def valid_username?(username)
+      !username.nil? && username != ''
     end
 
-    def success(data)
-      return data.merge(:success? => true)
+    def valid_password?(password)
+      !password.nil? && password != ''
     end
   end
 end
