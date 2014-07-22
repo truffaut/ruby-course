@@ -1,6 +1,5 @@
 require 'spec_helper'
-
-describe DoubleDog::Database::InMemory do
+shared_examples 'a database' do
   let(:db) { described_class.new }
 
   it "creates a user" do
@@ -102,7 +101,8 @@ describe DoubleDog::Database::InMemory do
     retrieved_order = db.get_order(order.id)
     expect(retrieved_order).to be_a DoubleDog::Order
     expect(retrieved_order.employee_id).to eq(emp.id)
-    expect(retrieved_order.items).to include(item_1, item_2, item_3)
+    expect(retrieved_order.items[0].name).to eq('fries')
+    expect(retrieved_order.items[2].price).to eq(8)
   end
 
   it "grabs all orders" do
@@ -123,3 +123,15 @@ describe DoubleDog::Database::InMemory do
     expect(orders.first.items.count).to be >= 2
   end
 end
+
+describe DoubleDog::Database::InMemory do
+  it_behaves_like 'a database'
+end
+
+describe DoubleDog::Database::SQL do
+  it_behaves_like 'a database'
+  before(:each) do
+    db.reset_tables
+  end
+end
+
